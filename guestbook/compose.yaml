@@ -1,0 +1,54 @@
+services:
+  guestbook:
+    build:
+      context: ..
+      dockerfile: guestbook/Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+    secrets:
+      - guestbook_db_user
+      - guestbook_db_password
+      - guestbook_db_name
+    networks:
+      - guestbook_network
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/guestbook_db_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/guestbook_db_password
+      POSTGRES_DB_FILE: /run/secrets/guestbook_db_name
+    volumes:
+      - guestbook_postgres:/var/lib/postgresql/data
+    secrets:
+      - guestbook_db_user
+      - guestbook_db_password
+      - guestbook_db_name
+    networks:
+      - guestbook_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/guestbook_db_user) -d $(cat /run/secrets/guestbook_db_name)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  guestbook_network:
+
+volumes:
+  guestbook_postgres:
+
+secrets:
+  guestbook_db_user:
+    file: ./secrets/guestbook_db_user.txt
+  guestbook_db_password:
+    file: ./secrets/guestbook_db_password.txt
+  guestbook_db_name:
+    file: ./secrets/guestbook_db_name.txt

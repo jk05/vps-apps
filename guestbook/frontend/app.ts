@@ -1,6 +1,7 @@
 const messageForm = <HTMLFormElement>document.getElementById('messageForm');
 const messageListElement = document.getElementById('messageList')!;
 const messageInput = <HTMLInputElement>document.getElementById('message')
+const messagesHeading = <HTMLHeadingElement>document.getElementById('messages-heading')
 
 type Messages = {
   messages: Message[]
@@ -15,9 +16,13 @@ type Message = {
 async function loadMessages() {
   const response = await fetch('/api/messages');
   const {messages}: Messages = await response.json();
-  console.log('messages12345678', messages)
 
+  messagesHeading.textContent = '';
   messageListElement.innerHTML = '';
+  if (!messages.length) {
+    return messagesHeading.textContent = 'No messages currently...'
+  }
+  messagesHeading.textContent = 'Last 5 Messages:'
   messages.forEach(msg => {
     const li = document.createElement('li');
     li.textContent = `${msg.message} (at ${msg.timestamp})`;

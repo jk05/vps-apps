@@ -12,8 +12,8 @@ Each app dir will be self contained for now and you can follow the instructions 
 
 ### Guestbook
 
-- tbc
+- Simple JS / Hono Guestbook app with Postgres to persist / display last 5 messages and timestamp
 
-## Plan
+## Todo
 
 - Add root level Makefile to handle commands

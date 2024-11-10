@@ -2,31 +2,45 @@
 
 ## Description
 
-- Simple Guestbook app consisting of:
-- HTML / TS Frontend (`/frontend`) which is built and compiled with ParcelJS
-- Hono backend (`/backend`) which is compiled with `tsx` in dev and built with `tsc` for prod
-- The hono backend server serves the compiled frontend static files from `/dist`
+- Simple Guestbook app consisting of a HTML / JS client and Hono / Postgres backend
+- HTML / TS Frontend (`/frontend`) which is built and compiled with `parcel` for dev and prod
+- Hono backend (`/backend`) which is compiled with `tsx` in dev and `esbuild` for prod
+- Postgres DB for persisting messages
+- The hono backend server serves the compiled frontend static files from `/dist/frontend/`
 
-## Development
+## Local Development Workflow
 
 - Node 20
 - `corepack enable` (pnpm)
 - `pnpm i`
-- `pnpm run:frontend` - this will watch and compile frontend files and output to `/dist/frontend/`
-- `pnpm run:backend` - this will watch and compile backend files and output to `/dist/backend/` (to display static files, need to run `pnpm run:frontend` first)
+- `pnpm run:dev` - this will watch and compile `/dist/{backend,frontend}/`
 - `http://localhost:3000/`
 
-## Production
+## Local Production Workflow
 
 - Node 20
 - `corepack enable` (pnpm)
 - `pnpm i --frozen-lockfile`
-- `pnpm run build:frontend` - `/dist/frontend`
-- `pnpm run build:backend` - `/dist/backend`
+- `pnpm run build` - will output compiled files to `/dist/{backend,frontend}`
 - `pnpm run start` - will run `node /dist/backend/index.ts`
 - `http://localhost:3000/`
 
 ## Docker Compose
 
+### Local
+
+- Call `./scripts/create-secrets.sh <DB_USER> <DB_PASSWORD> <DB_NAME>` to create runtime Docker `guestbook/secrets` dir that compose file relies on ([Docker Compose Secrets](https://docs.docker.com/compose/how-tos/use-secrets/))
+- from root, run `docker compose -f guestbook/compose.yaml up` (add `--build` to rebuild images)
+- this will spin up the `guestbook` service and `postgres` backend
+- `http://localhost:3000/`
+- SELECT: `docker exec -it guestbook-postgres-1 psql -U {USER} -d {DB} -c "SELECT * FROM messages;"`
+- DELETE: `docker exec -it guestbook-postgres-1 psql -U {USER} -d {DB} -c "DELETE FROM messages;"`
+- Currently not added a volume (either bind mount or named volume) so will need to dev and build locally and rebuild images
+
+### Production
+
 - tbc
-- add a Postgres instance and run the backend server with API routes and serving the static frontend files
+
+## Build and Push Images
+
+- tbc

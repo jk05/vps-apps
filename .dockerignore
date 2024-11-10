@@ -1,0 +1,25 @@
+# Ignore node_modules and build artifacts
+**/node_modules
+**/dist
+**/build
+**/.cache
+**/.parcel-cache
+
+# Ignore environment and secrets files
+**/.env*
+**/secrets
+
+# Ignore log files
+**/*.log
+
+# Ignore version control folders
+**/.git
+.git
+**/.vscode
+.vscode
+
+# Ignore Docker and OS-specific files
+**/Dockerfile
+.dockerignore
+**/.gitignore
+.DS_Store

@@ -1,44 +1,49 @@
 import { serve } from '@hono/node-server'
+import type {ServerType} from '@hono/node-server'
 import { Hono } from 'hono'
 import { serveStatic } from '@hono/node-server/serve-static'
 
+import { setupDb, client } from './setupDb'
+
 const app = new Hono()
+const PORT = process.env.PORT ? Number(process.env.PORT) : 3000
 
-// serve static frontend files (requires /dist to be populated)
-app.get('/', serveStatic({ path: './dist/frontend/index.html' }))
-app.use('/*', serveStatic({ root: './dist/frontend' }))
+let server: ServerType
 
-// TEMP - until I add Postgres
-const TEMP_MESSAGES = [
-  {
-    message: 'Message 1',
-    timestamp: '1'
-  },
-  {
-    message: 'Message 2',
-    timestamp: '2'
-  }
-]
-
-// GET all messages (limit to 5 eventually)
-app.get('/api/messages', (c) => {
-    return c.json({
-      messages: TEMP_MESSAGES
+const initServer = async () => {
+  try {
+    await setupDb()
+    
+    // serve static frontend files (requires /dist to be populated)
+    app.get('/', serveStatic({ path: './dist/frontend/index.html' }))
+    app.use('/*', serveStatic({ root: './dist/frontend' }))
+    
+    // GET all messages (limit to 5 eventually)
+    app.get('/api/messages', async (c) => {
+      const res = await client.query('SELECT message, timestamp FROM messages ORDER BY timestamp DESC LIMIT 5');
+      return c.json({ messages: res.rows });
     })
-})
+    
+    // POST a message
+    app.post('/api/message', async (c) => {
+      const { message } = await c.req.json();
+      await client.query('INSERT INTO messages (message) VALUES ($1)', [message]);
+      return c.json({ status: 'success 111' });
+    });
+    
+    // App setup
+    console.log(`Server is running on port ${PORT}`)
+    
+    server = serve({
+      fetch: app.fetch,
+      port: PORT
+    })
+  } catch (error) {
+    console.error('Server Error', error)
+    if (client) await client.end();
+    if (server) server.close();
+    process.exit(1)
+  }
+}
 
-// POST a message
-app.post('/api/message', async (c) => {
-  const { message } = await c.req.json();
-  TEMP_MESSAGES.push({message, timestamp: '3'})
-  return c.json({ status: 'success' });
-});
-
-// App setup
-const port = 3000
-console.log(`Server is running on port ${port}`)
-
-serve({
-  fetch: app.fetch,
-  port
-})
+await initServer()
