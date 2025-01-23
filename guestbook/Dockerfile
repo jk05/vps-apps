@@ -1,14 +1,6 @@
 # Stage 1: Build stage
 FROM node:20-alpine AS build
 
-LABEL org.opencontainers.image.source="https://github.com/jk05/vps-apps"
-LABEL org.opencontainers.image.revision=$COMMIT_SHA
-LABEL org.opencontainers.image.title="Guestbook"
-LABEL org.opencontainers.image.description="A guestbook application using Hono and PostgreSQL"
-LABEL org.opencontainers.image.version="1.0.0"
-LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.authors="Jas K"
-
 # Set the working directory
 WORKDIR /app/guestbook
 
@@ -34,6 +26,14 @@ RUN pnpm prune --prod
 
 # Stage 2: Production stage
 FROM node:20-alpine AS production
+
+LABEL org.opencontainers.image.source=https://github.com/jk05/vps-apps
+LABEL org.opencontainers.image.revision=$COMMIT_SHA
+LABEL org.opencontainers.image.title="Guestbook"
+LABEL org.opencontainers.image.description="A guestbook application using Hono and PostgreSQL"
+LABEL org.opencontainers.image.version="1.0.0"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.authors="Jas K"
 
 # Set the working directory
 WORKDIR /app
