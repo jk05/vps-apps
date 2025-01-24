@@ -20,9 +20,9 @@ echo "$DB_USER" > "$SECRETS_DIR/guestbook_db_user.txt"
 echo "$DB_PASSWORD" > "$SECRETS_DIR/guestbook_db_password.txt"
 echo "$DB_NAME" > "$SECRETS_DIR/guestbook_db_name.txt"
 
-# Set permissions to 600 for security
-chmod 600 "$SECRETS_DIR/guestbook_db_user.txt"
-chmod 600 "$SECRETS_DIR/guestbook_db_password.txt"
-chmod 600 "$SECRETS_DIR/guestbook_db_name.txt"
+# Set permissions to 666
+chmod 666 "$SECRETS_DIR/guestbook_db_user.txt"
+chmod 666 "$SECRETS_DIR/guestbook_db_password.txt"
+chmod 666 "$SECRETS_DIR/guestbook_db_name.txt"
 
 echo "Secrets created and permissions set in $SECRETS_DIR"

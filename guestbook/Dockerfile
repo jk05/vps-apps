@@ -27,6 +27,7 @@ RUN pnpm prune --prod
 # Stage 2: Production stage
 FROM node:20-alpine AS production
 
+# OCI Image Spec metadata labels (might need to revist / remove the $COMMIT_SHA as doesn't work as is)
 LABEL org.opencontainers.image.source=https://github.com/jk05/vps-apps
 LABEL org.opencontainers.image.revision=$COMMIT_SHA
 LABEL org.opencontainers.image.title="Guestbook"
