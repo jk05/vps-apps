@@ -1,11 +1,25 @@
 services:
+  traefik:
+    image: traefik:v3.1
+    command:
+      - --providers.docker
+      - --api.dashboard=true
+      - --api.insecure=true
+    ports:
+      - 80:80
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
   guestbook:
     build:
       context: ..
       dockerfile: guestbook/Dockerfile
     image: ghcr.io/jk05/vps-apps-guestbook:latest
-    ports:
-      - "3000:3000"
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.guestbook.rule=Host(`jknr.io`)"
+    # ports:
+    #   - "3000:3000" # We will use a reverse proxy (Traefik) to expose the service
     depends_on:
       postgres:
         condition: service_healthy
