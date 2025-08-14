@@ -1,0 +1,11 @@
+services:
+  traefik:
+    ports:
+      - 8081:80 # prevents clashes with other Traefik instances running (i.e. via Rancher)
+      - 8082:8080
+  guestbook:
+    build: # Dev (build) usage
+      context: ..
+      dockerfile: guestbook/Dockerfile
+    labels:
+      traefik.http.routers.guestbook.rule: "Host(`localhost`) && PathPrefix(`/guestbook`)"

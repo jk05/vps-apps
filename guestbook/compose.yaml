@@ -1,25 +1,50 @@
 services:
   traefik:
-    image: traefik:v3.1
+    image: traefik:v3.5.0
     command:
+      # https://doc.traefik.io/traefik/v2.0/user-guides/docker-compose/basic-example/
+      # Providers
       - --providers.docker
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=guestbook_network
+      # EntryPoints
+      - --entrypoints.web.address=:80
+      # API & Dashboard
       - --api.dashboard=true
       - --api.insecure=true
+      # Observability
+      - --log.level=INFO
+      - --accesslog=true
     ports:
       - 80:80
       - 8080:8080
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - guestbook_network
+
   guestbook:
-    build:
-      context: ..
-      dockerfile: guestbook/Dockerfile
-    image: ghcr.io/jk05/vps-apps-guestbook:latest
+    image: ghcr.io/jk05/vps-apps-guestbook:latest # Prod (no-build) - pull
     labels:
-      - traefik.enable=true
-      - "traefik.http.routers.guestbook.rule=Host(`jknr.io`)"
-    # ports:
-    #   - "3000:3000" # We will use a reverse proxy (Traefik) to expose the service
+      # https://docs.docker.com/guides/traefik/#using-traefik-in-development
+      traefik.docker.network: "guestbook_network"
+      traefik.enable: "true"
+      # # One router for EVERYTHING under /guestbook (HTML, assets, API)
+      traefik.http.routers.guestbook.rule: "Host(`jknr.io`) && PathPrefix(`/guestbook`)"
+      traefik.http.routers.guestbook.entrypoints: web
+      # Middlewares:
+      # - guestbook-addslash: Redirects "/guestbook" -> "/guestbook/" (301).
+      #   Without the trailing slash, the browser resolves relative URLs like "index.js"
+      #   to "/index.js" (root) instead of "/guestbook/index.js". This prevents 404s.
+      #
+      # - guestbook-strip: Removes the "/guestbook" prefix *before* proxying to the app.
+      #   Your app still serves "/" and "/api/*" internally, while external users hit
+      #   "/guestbook" and "/guestbook/api/*".
+      traefik.http.routers.guestbook.middlewares: guestbook-addslash,guestbook-strip
+      traefik.http.middlewares.guestbook-addslash.redirectregex.regex: "^/guestbook$"
+      traefik.http.middlewares.guestbook-addslash.redirectregex.replacement: "/guestbook/"
+      # Strip the base path before forwarding to your app
+      traefik.http.middlewares.guestbook-strip.stripprefixregex.regex: "^/guestbook(/|$)"
     depends_on:
       postgres:
         condition: service_healthy
@@ -49,13 +74,18 @@ services:
     networks:
       - guestbook_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/guestbook_db_user) -d $(cat /run/secrets/guestbook_db_name)"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $(cat /run/secrets/guestbook_db_user) -d $(cat /run/secrets/guestbook_db_name)",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
 
 networks:
   guestbook_network:
+    name: guestbook_network
 
 volumes:
   guestbook_postgres:

@@ -9,7 +9,7 @@
     "dev:frontend": "parcel frontend/index.html --dist-dir dist/frontend",
     "dev": "concurrently \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
     "build:backend": "node esbuild.config.mjs",
-    "build:frontend": "parcel build frontend/index.html --dist-dir dist/frontend",
+    "build:frontend": "node scripts/build-frontend.mjs",
     "build": "pnpm run build:frontend && pnpm run build:backend",
     "start": "node dist/backend/index.js",
     "clean": "pnpm run clean:dist && rm -rf node_modules/",
@@ -32,5 +32,5 @@
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
   },
-  "packageManager": "pnpm@9.10.0"
+  "packageManager": "pnpm@10.11.0"
 }

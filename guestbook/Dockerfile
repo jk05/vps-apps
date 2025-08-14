@@ -19,17 +19,22 @@ RUN pnpm install --frozen-lockfile --prod=false
 
 COPY guestbook ./
 
+# set default value here (sets FE base href and makes the app code /guestbook unaware)
+ARG BASE_HREF=/guestbook/
+ENV BASE_HREF=$BASE_HREF
+
 # Build the app (frontend and backend)
 RUN pnpm build
 
+# TODO: Use pnpm workspace in order to use pnpm deploy and created a production build
 RUN pnpm prune --prod
 
 # Stage 2: Production stage
 FROM node:20-alpine AS production
 
-# OCI Image Spec metadata labels (might need to revist / remove the $COMMIT_SHA as doesn't work as is)
+# OCI Image Spec metadata labels (TODO: need to pass in $COMMIT_SHA as build time arg)
 LABEL org.opencontainers.image.source=https://github.com/jk05/vps-apps
-LABEL org.opencontainers.image.revision=$COMMIT_SHA
+# LABEL org.opencontainers.image.revision=$COMMIT_SHA
 LABEL org.opencontainers.image.title="Guestbook"
 LABEL org.opencontainers.image.description="A guestbook application using Hono and PostgreSQL"
 LABEL org.opencontainers.image.version="1.0.0"
