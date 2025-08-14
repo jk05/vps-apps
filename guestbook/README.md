@@ -112,8 +112,20 @@ NOTE: Keep in mind [https://github.com/rancher-sandbox/rancher-desktop/issues/57
 
 - <https://maximorlov.com/4-essential-steps-to-securing-a-vps/#4-enable-automatic-security-updates>
   - enabled automatic security updates
+- VPS is minimal and doesn't have `htop`, `top`
+  - use `free -h` or `docker stats` for now
 - Limits / TODOs
+
   - Github workflow - building images (local emulation is PITA)
   - Dockerfile cleanup - pnpm workspaces for deploy etc.
   - Build cleanup
   - Needs to be rearranged for further monorepo usage in future
+  - no replicas for now
+
+    - if needed, simply add the following to the `guestbook` service in the `compose.yaml`:
+
+      ```bash
+      deploy:
+        mode: replcated
+        replicas: {number}
+      ```

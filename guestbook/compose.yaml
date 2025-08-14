@@ -9,6 +9,14 @@ services:
       - --providers.docker.network=guestbook_network
       # EntryPoints
       - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      # Redirect HTTP to HTTPS
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      # TLS certificates
+      - --certificatesresolvers.myresolver.acme.tlschallenge=true
+      - --certificatesresolvers.myresolver.acme.email=jasrajkuner@gmail.com
+      - --certificatesresolvers.myresolver.acme.storage=/acme.json
       # API & Dashboard
       - --api.dashboard=true
       - --api.insecure=true
@@ -17,8 +25,10 @@ services:
       - --accesslog=true
     ports:
       - 80:80
+      - 443:443
       - 8080:8080
     volumes:
+      - letsencrypt:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - guestbook_network
@@ -31,7 +41,9 @@ services:
       traefik.enable: "true"
       # # One router for EVERYTHING under /guestbook (HTML, assets, API)
       traefik.http.routers.guestbook.rule: "Host(`jknr.io`) && PathPrefix(`/guestbook`)"
-      traefik.http.routers.guestbook.entrypoints: web
+      traefik.http.routers.guestbook.entrypoints: websecure
+      # TLS Certificate Resolver
+      traefik.http.routers.guestbook.tls.certresolver: myresolver
       # Middlewares:
       # - guestbook-addslash: Redirects "/guestbook" -> "/guestbook/" (301).
       #   Without the trailing slash, the browser resolves relative URLs like "index.js"
@@ -89,6 +101,7 @@ networks:
 
 volumes:
   guestbook_postgres:
+  letsencrypt:
 
 secrets:
   guestbook_db_user:

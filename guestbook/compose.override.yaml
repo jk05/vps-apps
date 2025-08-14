@@ -1,5 +1,15 @@
 services:
   traefik:
+    # Completely replace the 'command' to remove ACME + HTTPS redirect in dev
+    command:
+      - --providers.docker
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=guestbook_network
+      - --entrypoints.web.address=:80
+      - --api.dashboard=true
+      - --api.insecure=true
+      - --log.level=INFO
+      - --accesslog=true
     ports:
       - 8081:80 # prevents clashes with other Traefik instances running (i.e. via Rancher)
       - 8082:8080
@@ -9,3 +19,6 @@ services:
       dockerfile: guestbook/Dockerfile
     labels:
       traefik.http.routers.guestbook.rule: "Host(`localhost`) && PathPrefix(`/guestbook`)"
+      # serve plain HTTP in dev
+      traefik.http.routers.guestbook.entrypoints: web
+      traefik.http.routers.guestbook.tls: "false"
